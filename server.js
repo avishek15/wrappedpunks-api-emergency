@@ -15,7 +15,7 @@ app.get("/_health", (req, res) => {
 
 // Redirect root to main website
 app.get("/", (req, res) => {
-    res.redirect(301, "https://your-main-website.com");
+    res.redirect(301, "https://cryptopunks.app/cryptopunks/wrapped");
 });
 
 // API endpoints
