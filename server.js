@@ -13,31 +13,43 @@ app.get("/_health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Redirect root to main website
+// Redirect root to official CryptoPunks Wrapped Punks page
 app.get("/", (req, res) => {
-    res.redirect(301, "https://cryptopunks.app/cryptopunks/wrapped");
+    res.redirect("https://cryptopunks.app/cryptopunks/wrapped");
 });
 
-// API endpoints
-app.get("/punks/:id", (req, res) => {
-    const id = parseInt(req.params.id);
+// Metadata endpoint - MATCHES SMART CONTRACT PATH
+app.get("/api/punks/metadata/:id", (req, res) => {
+    const id = req.params.id;
 
-    if (id < 0 || id >= 10000) {
-        return res.status(404).json({ error: "Invalid punk ID" });
+    // Validate punk ID
+    if (id < 0 || id > 9999) {
+        return res
+            .status(404)
+            .json({ error: "Punk ID must be between 0 and 9999" });
     }
 
-    const traits = punkTraits[id] || [];
+    // Get punk traits
+    const punkTrait = punkTraits[id];
+    if (!punkTrait) {
+        return res.status(404).json({ error: "Punk not found" });
+    }
 
+    // Convert traits to OpenSea format
+    const attributes = punkTrait.map((trait) => ({
+        trait_type: trait.t,
+        value: trait.v,
+    }));
+
+    // Return metadata in OpenSea format
     res.json({
         title: `W#${id}`,
         name: `W#${id}`,
-        description: "This Punk was wrapped using Wrapped Punks contract...",
+        description:
+            "This Punk was wrapped using Wrapped Punks contract, which makes it compatible with all ERC721 marketplaces and dApps.",
         image: `https://images.wrappedpunks.com/images/punks/${id}.png`,
         external_url: "https://wrappedpunks.com",
-        attributes: traits.map((trait) => ({
-            trait_type: trait.t,
-            value: trait.v,
-        })),
+        attributes: attributes,
     });
 });
 
